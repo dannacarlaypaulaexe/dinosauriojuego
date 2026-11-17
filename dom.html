@@ -1,0 +1,140 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>DinosaurioJuego</title>
+<style>
+body{text-align:center;font-family:Arial;background:#ffc8dd;margin:0;padding:10px;overflow-x:hidden;transition:0.5s}
+h1{color:#590d22}
+#juego{width:800px;height:300px;border:4px solid #590d22;background:white;margin:20px auto;position:relative;overflow:hidden;border-radius:15px}
+#dino{position:absolute;bottom:0;left:60px;width:90px;z-index:2}
+#cactus{position:absolute;bottom:0;left:800px;font-size:60px;z-index:1}
+#mensaje{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#590d22;color:white;padding:20px 40px;border-radius:15px;font-size:30px;font-weight:bold;display:none;z-index:10}
+button{background:#ff4d6d;color:white;border:none;padding:12px 25px;border-radius:10px;font-weight:bold;cursor:pointer;font-size:16px;margin:5px}
+button:disabled{background:gray}
+.card{background:white;width:800px;margin:10px auto;padding:15px;border-radius:10px}
+#cambiaFondo{cursor:pointer;background:white;width:800px;margin:10px auto;padding:8px;border-radius:10px;border:2px dashed #ff4d6d}
+input{padding:10px;border-radius:8px;border:2px solid #ff4d6d;font-size:16px}
+</style>
+</head>
+<body>
+<h1 onmouseover="this.style.color='#ff4d6d'" onmouseout="this.style.color='#590d22'">¡Bienvenido al juego!</h1>
+<p id="cambiaFondo" onclick="cambiarFondo()">Cambia el color de la pagina aqui!</p>
+<div id="juego">
+  <div id="mensaje"></div>
+  <img id="dino" src="dino.png" alt="dino">
+  <div id="cactus">🌵</div>
+</div>
+<p>Puntos: <b id="pts">0</b> | Jugador: <b id="jugadorActual">Nadie registrado</b></p>
+<button id="btnJuego" type="button" onclick="accionBoton()" disabled>COMENZAR JUEGO</button>
+<div class="card">
+  <h3>Registrate para jugar :3</h3>
+  <input id="nombre" placeholder="Tu nombre" onkeydown="log('tecla '+event.key)">
+  <button type="button" onclick="registrar()">REGISTRARSE</button>
+  <br><br>
+  <table id="tabla" border="1" align="center" width="100%"><tr><th>Nombre</th><th>Puntos</th><th>Estado</th></tr></table>
+  <ul id="lista"><li>Esperando registro...</li></ul>
+  <a href="https://lenguajejs.com/dom/introduccion/que-es/" target="_blank" onmouseover="log('mouse sobre enlace)')">Haz click aqui para saber mas sobre el DOM</a>
+  <p>Juego creado por:</p>
+  <p>Amado Sanchez Maria Paula</p>
+  <p> Felix Martinez Carla Milagros </p>
+  <p> Grupo: 5AMP </p>
+</div>
+<script>
+let puntos=0, pos=800, saltando=false, activo=false, iniciado=false, fondoRosita=true;
+let filaActual=null;
+let dino=document.getElementById("dino");
+let cactus=document.getElementById("cactus");
+let pts=document.getElementById("pts");
+let btn=document.getElementById("btnJuego");
+let msg=document.getElementById("mensaje");
+document.addEventListener("keydown", function(e){
+  if(e.code==="Space" || e.key===" " || e.keyCode===32){
+    e.preventDefault();
+    if(activo) saltar();
+  }
+});
+function cambiarFondo(){
+  if(fondoRosita){
+    document.body.style.background = "#a2d2ff";
+    fondoRosita=false;
+  }else{
+    document.body.style.background = "#ffc8dd";
+    fondoRosita=true;
+  }
+  log("Cambio color de pagina");
+}
+function registrar(){
+  let n=document.getElementById("nombre").value.trim();
+  if(n===""){ alert("Pon tu nombre"); return; }
+  if(filaActual){ filaActual.cells[2].innerText="Finalizado"; }
+  let tabla=document.getElementById("tabla");
+  let r=tabla.insertRow();
+  r.insertCell(0).innerText=n;
+  r.insertCell(1).innerText=0;
+  r.insertCell(2).innerText="Jugando";
+  r.style.background="#ffe5ec"; r.style.fontWeight="bold";
+  filaActual=r;
+  puntos=0; pts.innerText=0;
+  document.getElementById("jugadorActual").innerText=n;
+  document.getElementById("nombre").value="";
+  iniciado=false; activo=false; btn.disabled=false;
+  btn.innerText="COMENZAR JUEGO"; btn.style.background="#2ec4b6";
+  msg.style.display="none"; pos=800; dino.style.bottom="0px";
+  log("Jugador registrado: "+n+" ");
+  document.getElementById("tabla").style.color="#c9184a";
+}
+function actualizarTabla(){ if(filaActual){ filaActual.cells[1].innerText=puntos; } }
+function accionBoton(){
+  btn.blur();
+  if(!filaActual){ alert("Primero registrate!"); return; }
+  if(!iniciado) iniciar();
+  else if(activo) saltar();
+  else reiniciar();
+}
+function iniciar(){
+  iniciado=true; activo=true; puntos=0; pos=800; saltando=false;
+  dino.style.bottom="0px"; pts.innerText=0; msg.style.display="none";
+  btn.innerText="SALTAR"; if(filaActual) filaActual.cells[2].innerText="Jugando";
+  actualizarTabla();
+}
+function reiniciar(){
+  activo=true; puntos=0; pos=800; saltando=false;
+  dino.style.bottom="0px"; pts.innerText=0; msg.style.display="none";
+  btn.innerText="SALTAR"; if(filaActual) filaActual.cells[2].innerText="Jugando";
+  actualizarTabla();
+}
+function saltar(){
+  if(saltando || !activo) return;
+  saltando=true;
+  let y=parseInt(dino.style.bottom)||0;
+  let up=setInterval(()=>{
+    y+=15; dino.style.bottom=y+"px";
+    if(y>=170){
+      clearInterval(up);
+      let down=setInterval(()=>{
+        y-=15; dino.style.bottom=y+"px";
+        if(y<=0){ y=0; dino.style.bottom="0px"; clearInterval(down); saltando=false; }
+      },20);
+    }
+  },20);
+}
+setInterval(()=>{
+  if(!activo) return;
+  pos-=8; cactus.style.left=pos+"px";
+  if(pos<-60){ pos=800; puntos++; pts.innerText=puntos; actualizarTabla(); }
+  let dinoY=parseInt(dino.style.bottom)||0;
+  if(pos>60 && pos<120 && dinoY<60){
+    activo=false;
+    msg.innerText="¡PERDISTE! Puntos: "+puntos; msg.style.display="block";
+    btn.innerText="REINICIAR JUEGO"; btn.style.background="#ff4d6d";
+    if(filaActual){ filaActual.cells[1].innerText=puntos; filaActual.cells[2].innerText="Perdió - "+puntos+" pts"; filaActual.style.background="white"; filaActual.style.fontWeight="normal"; }
+  }
+},20);
+function log(t){
+  let li=document.createElement("li");
+  li.innerText=t;
+  document.getElementById("lista").appendChild(li);
+}
+</script>
+</body>
+</html>
